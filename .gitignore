@@ -1,0 +1,31 @@
+.neon
+
+# Local tooling and generated artifacts
+.codex/
+.agents/
+**/node_modules/
+**/__pycache__/
+**/.dart_tool/
+**/build/
+**/.gradle/
+/tmp/
+/output/
+*.log
+.DS_Store
+
+# Runtime credentials, databases and private signing material
+**/.env
+**/.env.*
+!**/.env.development.example
+!**/.env.production.example
+**/.secrets/
+**/*service-account*.json
+**/*firebase-adminsdk*.json
+*.pem
+*.key
+*.jks
+*.keystore
+*.sqlite*
+*.db
+*.dump
+*.backup

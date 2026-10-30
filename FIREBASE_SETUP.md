@@ -1,0 +1,12 @@
+# Firebase setup for BillEase development
+
+Firebase is used only to send owner push notifications. Neon remains the business database. Use a separate Firebase project and credential for production later.
+
+1. The development Firebase project is `billease-development`. The Android app is registered as `com.billease.mobile.dev`; its `google-services.json` has been moved to `Frontend/android/app/src/development/google-services.json`. The development flavor applies the Google Services Gradle plugin and initializes Firebase from its Android resources. A separate production client configuration is still required. See [Firebase's Flutter setup](https://firebase.google.com/docs/flutter/setup).
+3. In Firebase Project settings → **Service accounts**, choose **Generate new private key**. Download the JSON to a secure location. Do **not** paste it into chat or commit it to Git. For local development, the protected, ignored path is `Backend/.secrets/development/firebase-service-account.json` (file mode 600). See [Firebase Admin setup](https://firebase.google.com/docs/admin/setup).
+4. Once the **development** Railway backend environment exists, add a protected variable named `FIREBASE_SERVICE_ACCOUNT_JSON` containing the full JSON content. Set `PUSH_ENABLED=true` only after the credential is present and an owner phone can register its FCM token. Use separate values in production.
+5. Install the development Flutter app on an owner Android phone. The app will register its FCM token with the backend. Test one staff approval request and verify the owner receives the push while the app is closed or in the background. See [Flutter FCM setup](https://firebase.google.com/docs/cloud-messaging/flutter/get-started).
+
+What is still needed: the separate **Firebase Admin service-account JSON** from step 3, stored in the development Railway secret from step 4. The Android `google-services.json` does not contain this private key and cannot authorize backend push sending. Tell the developer when the Railway secret is set; keep the private key out of chat.
+
+The backend uses the official Google authentication library with FCM HTTP v1 and caches its authenticated client. It does not connect to Firestore or Firebase Storage. Confirm that the project's Cloud Messaging API is enabled and the service account has permission to send messages before the phone test. See [FCM server authentication](https://firebase.google.com/docs/cloud-messaging/send/v1-api).

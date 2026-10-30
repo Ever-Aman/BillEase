@@ -1,0 +1,10 @@
+# BillEase development workflow
+
+- The main agent owns requirements, dependency planning, integration review and final validation. Delegate independent nontrivial tasks with explicit file ownership; three concurrent subagents is a default, not a hard cap. Use more independent workers when the runtime permits, and queue work when it does not.
+- Use `gpt-6-luna` with `medium` reasoning for light, bounded work. Use `gpt-6.1-sol` with `medium` reasoning for complex implementation, cross-layer work and security-sensitive tasks. Give each fresh worker only the relevant task context.
+- Before consulting the project map, run `python3 tools/code_graph.py sync`, or use `find SYMBOL` / `file PATH` (both synchronize first). The map is `.codex/project-map.json`; symbols, imports, routes and candidate references are lexical rather than semantic proof. Confirm important relationships with targeted `rg`/source reads.
+- Refresh the map after changed source lands. Hash/metadata checks reuse unchanged file nodes and update affected imports/symbols/routes. This checkout currently has no Git history; use its file hashes and targeted reads rather than assuming a diff baseline.
+- Workers return concise changes, tests and unresolved issues. The main agent inspects their code, checks cross-component contracts, runs relevant integration tests and confirms graph freshness before completion.
+- Keep orchestration within native Codex collaboration tools and this lightweight map. No separate orchestration application, service or database is required.
+- Backend and Frontend stay separate. Mobile owner/staff UI lives in `Frontend/lib`; admin UI is a separate website in `Frontend/Admin`, never a mobile admin screen. Preserve development/production separation and existing security/financial rules in `BillEase-V1-Specification.md`.
+- Use isolated development databases for tests. Record external credential/device/accountant requirements in `USER_INPUTS_NEEDED.md`; distinguish implemented code from physical-device and hosted-production acceptance.

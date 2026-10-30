@@ -1,0 +1,33 @@
+# Development only. Migrate the development database before manual deploys;
+# see RENDER_SETUP.md. Free services do not support preDeployCommand.
+services:
+  - type: web
+    name: billease-development
+    runtime: docker
+    region: singapore
+    plan: free
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    autoDeployTrigger: 'off'
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: APP_ENV
+        value: development
+      - key: DATABASE_ENV
+        value: development
+      - key: TRUST_PROXY_HOPS
+        value: '1'
+      - key: PUSH_ENABLED
+        value: 'false'
+      - key: DATABASE_URL
+        sync: false
+      - key: DATABASE_URL_POOLED
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: MFA_ENCRYPTION_KEY
+        sync: false
+      - key: ADMIN_WEB_ORIGIN
+        sync: false

@@ -1,0 +1,18 @@
+{
+  "name": "BillEase",
+  "short_name": "BillEase",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#f1f3f5",
+  "theme_color": "#1b252d",
+  "description": "BillEase workspace preview.",
+  "orientation": "portrait-primary",
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

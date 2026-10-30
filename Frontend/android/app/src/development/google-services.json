@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "481375241358",
+    "project_id": "billease-development",
+    "storage_bucket": "billease-development.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:481375241358:android:5231df3f3feadb68cc35df",
+        "android_client_info": {
+          "package_name": "com.billease.mobile.dev"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD3X6w-3NOE6vpHbvGqYyHYx5EYIufVjow"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

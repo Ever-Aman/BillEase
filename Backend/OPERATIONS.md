@@ -1,0 +1,21 @@
+# Development and production operations
+
+Create separate Railway environments and separate Neon databases. Set `APP_ENV`, `DATABASE_ENV`, `DATABASE_URL`, `JWT_SECRET`, and `MFA_ENCRYPTION_KEY` independently. Keep production credentials out of development. Railway's predeploy command should run `npm run db:migrate`; a failed migration prevents the new deployment from starting. [Railway environments](https://docs.railway.com/environments) and [predeploy commands](https://docs.railway.com/deployments/pre-deploy-command) describe these controls.
+
+Use Node 24 LTS, as declared in `package.json` and `.node-version`; Node 20 is end of life. See the [Node.js release table](https://nodejs.org/en/about/previous-releases). Set the Railway root directory to `Backend`. Keep database runtime permissions limited to the app's required tables; use a separate migration/backup credential when configuring hosted least privilege.
+
+`railway.json` supplies predeploy migration, start, database-backed health check and bounded restart settings. Select `Backend/railway.json` as the config file when configuring the monorepo service; verify the effective settings in Railway before the first deployment. See [Railway config reference](https://docs.railway.com/config-as-code/reference).
+
+`TRUST_PROXY_HOPS` defaults to zero. Set it only after verifying the actual number of trusted reverse proxies and that clients cannot use a shorter direct route. Rate limiting uses Express's resolved `req.ip`; incorrectly trusting arbitrary forwarded headers permits spoofing. Check the actual Railway deployment against [Express proxy guidance](https://expressjs.com/en/guide/behind-proxies/).
+
+Set `ADMIN_WEB_ORIGIN` to the exact public origin that serves the separate administrator website (scheme and host only, no path). Production browser requests are accepted only from this configured origin. Keep the website same-origin with the backend unless a deliberate deployment change also updates exact-origin and CSRF protections. The site uses opaque `HttpOnly; SameSite=Strict` cookies; do not weaken cookie flags or expose bearer credentials to browser storage. Admin status is limited to nonfinancial setup and does not grant business operating access.
+
+Owner setup must initialize the business/year document series before issuing any bill. Confirm the last number used externally; existing issued series cannot be reset through the API. At a new financial year, initialize its new series explicitly.
+
+Before production activation, verify Neon database encryption, backup retention, and the chosen restore window on the actual plan. Configure a daily encrypted backup independent of the live database. A Neon branch from a point in time can support recovery within the configured history window, but it does not replace an independently retained backup. [Neon restore overview](https://neon.com/blog/point-in-time-recovery).
+
+`scripts/backup.sh` creates an AES-256 encrypted PostgreSQL custom-format dump. Set `APP_ENV`, matching `DATABASE_ENV`, `DATABASE_URL`, an absolute `BACKUP_DIR`, and a strong `BACKUP_PASSPHRASE` in the backup job's secret store. The script checks the database's environment marker before dumping. Store the output on an off-host persistent volume or upload it to independent object storage, then schedule it daily with retention and failure alerting. Railway's ephemeral application filesystem is not a backup destination. The passphrase must be recoverable separately from the database. A local development dump was decrypted and restored to a separate test database; this is not a production restore rehearsal.
+
+Restore into an isolated database first. Run migrations there, start the API against that database with matching environment keys, and reconcile sample invoice numbers, ledger balances, delivery events, returns, operations, and audit events. Do not point a restored copy at live clients until accepted operation IDs and document numbers have been reconciled. A server backup cannot recover records that were never uploaded from a phone.
+
+Keep JWT and MFA encryption keys in a protected secret store with a documented recovery process. Losing the MFA key prevents decrypting existing authenticator secrets. Rotate compromised keys through a deliberate session revocation and MFA re-enrollment procedure.
