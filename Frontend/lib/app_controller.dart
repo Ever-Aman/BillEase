@@ -855,6 +855,48 @@ class AppController extends ChangeNotifier {
     return _sendOnline(job, refresh: refresh);
   }
 
+  Future<void> retryBill(OutboxJob job) async {
+    if (business == null || store == null || session.data == null) {
+      throw StateError('Open the business before retrying saved work');
+    }
+    final savedScope = scope, savedStore = store!;
+    await requireWork();
+    _checkWorkspace(savedScope, savedStore);
+    if (!owner || job.scope != savedScope || syncing) {
+      throw StateError(
+        'Only the owner can retry this bill after sync finishes',
+      );
+    }
+    await savedStore.atomic(() async {
+      _checkWorkspace(savedScope, savedStore);
+      final current = (await savedStore.jobs(savedScope))
+          .where((saved) => saved.id == job.id)
+          .firstOrNull;
+      _checkWorkspace(savedScope, savedStore);
+      if (!owner ||
+          syncing ||
+          current == null ||
+          current.kind != 'bill' ||
+          current.method != 'POST' ||
+          current.path != '/bills' ||
+          !['rejected', 'review_required'].contains(current.status)) {
+        throw StateError('This saved bill cannot be retried here');
+      }
+      // Load the stored intent, never caller-supplied or current catalogue data.
+      await savedStore.updateJob(
+        current.copy(
+          status: 'pending',
+          error: current.error,
+          retryAt: DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
+        ),
+      );
+    });
+    _checkWorkspace(savedScope, savedStore);
+    await reload();
+    _checkWorkspace(savedScope, savedStore);
+    await sync();
+  }
+
   Future<Json> retryOnline(OutboxJob job) async {
     await requireWork();
     if (!owner ||

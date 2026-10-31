@@ -71,7 +71,7 @@ class SyncService {
           );
           rethrow;
         }
-        final status = error.status == 409
+        final status = error.outcome == 'review_required'
             ? 'review_required'
             : error.status >= 400 && error.status < 500 && error.status != 429
             ? 'rejected'

@@ -10,6 +10,7 @@ export async function saleFixture({
   quantityMilli = 2000,
   priorDebt = 0,
   lastNumber = 0,
+  role = "owner",
 } = {}) {
   const ids = Object.fromEntries(
     [
@@ -106,7 +107,7 @@ export async function saleFixture({
     payments.push({ id: randomUUID(), method: "cash", amountMinor: cash });
   if (digital)
     payments.push({ id: randomUUID(), method: "upi", amountMinor: digital });
-  await createBill(ids.business, ids.owner, "owner", {
+  await createBill(ids.business, ids[role], role, {
     id: ids.bill,
     customerId: ids.customer,
     occurrenceAt: new Date().toISOString(),

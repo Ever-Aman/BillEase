@@ -49,16 +49,34 @@ class OutboxScreen extends StatelessWidget {
                       job.status.replaceAll('_', ' ').toUpperCase(),
                       attention: job.status != 'done',
                     ),
-                    if (job.error != null)
+                    if (job.error?.trim().isNotEmpty == true ||
+                        ['rejected', 'review_required'].contains(job.status))
                       Padding(
                         padding: const EdgeInsets.only(top: 10),
-                        child: Text(job.error!),
+                        child: SelectableText(
+                          job.error?.trim().isNotEmpty == true ? job.error! : 'The server did not accept this saved operation. No error details were saved. Retry the original operation to obtain current details.',
+                          style: const TextStyle(fontWeight: FontWeight.w600),
+                        ),
                       ),
                     const SizedBox(height: 8),
                     Text(
                       'Attempts: ${job.attempts} · ${DateFormat('d MMM, HH:mm').format(job.created.toLocal())}',
                       style: const TextStyle(fontSize: 11, color: muted),
                     ),
+                    if (job.kind == 'bill' &&
+                        ['rejected', 'review_required'].contains(job.status) &&
+                        app.owner) ...[
+                      const Text(
+                        'Check the server details above and fix business setup if required. Retry sends the original bill unchanged; financial conflicts still require review.',
+                        style: TextStyle(fontSize: 12, color: muted),
+                      ),
+                      TextButton(
+                        onPressed: app.syncing
+                            ? null
+                            : () => perform(context, () => app.retryBill(job)),
+                        child: const Text('Retry original bill'),
+                      ),
+                    ],
                     if (job.kind == 'online_action' &&
                         ['uncertain', 'sending_online'].contains(job.status) &&
                         app.owner)

@@ -55,7 +55,10 @@ void main() {
       transport: MockClient((request) async {
         seen.add(request.url.path);
         if (request.url.path.endsWith('/bills')) {
-          return http.Response('{"error":"Version conflict"}', 409);
+          return http.Response(
+            '{"error":"Version conflict","outcome":"review_required"}',
+            409,
+          );
         }
         if (request.url.path.endsWith('/repayments')) {
           return http.Response('{}', 201);

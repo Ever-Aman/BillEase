@@ -173,13 +173,19 @@ export async function createBill(businessId, actorId, role, input, existingDb) {
     );
     if (paymentTotal > total && (role !== "owner" || !input.customerId))
       fail("Payment exceeds staff or walk-in limit", 400);
-    const cash = input.payments
-      .filter((p) => p.method === "cash")
-      .reduce((sum, p) => sum + BigInt(p.amountMinor), 0n);
-    if (!input.customerId && cash < total)
+    const confirmedPayments = input.payments.filter(
+      (payment) => role === "owner" || payment.method === "cash",
+    );
+    const confirmedTotal = confirmedPayments.reduce(
+      (sum, p) => sum + BigInt(p.amountMinor),
+      0n,
+    );
+    if (!input.customerId && confirmedTotal < total)
       fail("Walk-in bill requires confirmed payment", 400);
     const review =
-      role === "staff" && cash < total ? "credit_pending" : "not_required";
+      role === "staff" && confirmedTotal < total
+        ? "credit_pending"
+        : "not_required";
     const fy = yearOf(now);
     const series = await db.query(
       "UPDATE document_series SET last_number=last_number+1 WHERE business_id=$1 AND financial_year=$2 RETURNING last_number",
@@ -238,16 +244,17 @@ export async function createBill(businessId, actorId, role, input, existingDb) {
       );
     for (const p of input.payments)
       await db.query(
-        "INSERT INTO payments(id,business_id,bill_id,method,amount_minor,state,actor_id,occurrence_at) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)",
+        "INSERT INTO payments(id,business_id,bill_id,method,amount_minor,state,actor_id,occurrence_at,verified_by) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)",
         [
           p.id,
           businessId,
           input.id,
           p.method,
           p.amountMinor,
-          p.method === "cash" ? "confirmed" : "pending",
+          role === "owner" || p.method === "cash" ? "confirmed" : "pending",
           actorId,
           occurred,
+          role === "owner" ? actorId : null,
         ],
       );
     if (
@@ -264,7 +271,7 @@ export async function createBill(businessId, actorId, role, input, existingDb) {
         "INSERT INTO customer_ledger(business_id,customer_id,bill_id,debt_delta_minor,actor_id) VALUES ($1,$2,$3,$4,$5)",
         [businessId, input.customerId, input.id, total.toString(), actorId],
       );
-      for (const p of input.payments.filter((p) => p.method === "cash"))
+      for (const p of confirmedPayments)
         await allocateReceipt(
           db,
           businessId,

@@ -128,7 +128,7 @@ test("mixed-unit return and partial cancellation keep original value and quantit
     );
     assert.equal(attempts.filter((x) => x.status === "fulfilled").length, 1);
     assert.equal(attempts.filter((x) => x.status === "rejected").length, 1);
-    const claimed = await saleFixture({ digital: 2000 });
+    const claimed = await saleFixture({ digital: 2000, role: "staff" });
     await cancelBill(claimed.business, claimed.owner, {
       billId: claimed.bill,
       reason: "Cancel sale; keep receipt claim for verification",

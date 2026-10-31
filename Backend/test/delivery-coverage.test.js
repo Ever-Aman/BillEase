@@ -13,7 +13,7 @@ if (
   throw new Error("Isolated development database required");
 test("confirmed partial money authorizes only covered original-priced quantities without exposing money", async () => {
   try {
-    const f = await saleFixture({ cash: 500, digital: 1500 });
+    const f = await saleFixture({ cash: 500, digital: 1500, role: "staff" });
     const view = await deliveryView(f.business, f.bill);
     assert.ok(view.lines[0].item_id);
     assert.ok(view.lines[0].units.some((u) => u.id === f.piece));

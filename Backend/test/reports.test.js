@@ -16,7 +16,7 @@ if (
   throw new Error("Isolated development database required");
 test("owner report includes repayment receipts, correction reversals and dated cancellation values", async () => {
   try {
-    const f = await saleFixture({ cash: 500, digital: 1500 });
+    const f = await saleFixture({ cash: 500, digital: 1500, role: "staff" });
     await recordRepayment(f.business, f.owner, {
       customerId: f.customer,
       amountMinor: 100,
